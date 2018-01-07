@@ -20,6 +20,7 @@ RUN apt-get update -qq && \
         python3-dev \
         pkg-config \
         vim \
+	wget \
         sqlite3 \
         rsync \
         software-properties-common \
