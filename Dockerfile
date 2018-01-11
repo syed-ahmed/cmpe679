@@ -92,6 +92,7 @@ RUN pip3 --no-cache-dir install \
         rm -rf /root/.cache
 
 COPY jupyter_notebook_config.py /root/.jupyter/
+COPY ipython_magic_function_inspector.py /root/.ipython/profile_default/startup/
 
 EXPOSE 8888
 
