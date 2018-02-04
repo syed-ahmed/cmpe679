@@ -1,101 +1,100 @@
-FROM ubuntu:16.04
+FROM cmpe679/cmpe679:hw1-4
 
 LABEL maintainer="Syed Ahmed <syed.ahmed.emails@gmail.com>"
 
+# install caffe2
 RUN apt-get update -qq && \
     DEBIAN_FRONTEND=noninteractive apt-get install -yq --no-install-recommends \
-        build-essential \
-        ca-certificates \
-        curl \
-        git \
-        language-pack-en \
-        libcurl4-openssl-dev \
-        libffi-dev \
-        libsqlite3-dev \
-        libzmq3-dev \
-        libfreetype6-dev \
-        libpng12-dev \
-        pandoc \
-        python3 \
-        python3-dev \
-        pkg-config \
-        vim \
-	wget \
-        sqlite3 \
-        rsync \
-        software-properties-common \
-        unzip \
-        texlive-fonts-recommended \
-        texlive-latex-base \
-        texlive-latex-extra \
-        zlib1g-dev && \
+        cmake \
+        libgflags-dev \
+        libgtest-dev \
+        libiomp-dev \
+        libleveldb-dev \
+        liblmdb-dev \
+        libopencv-dev \
+        libopenmpi-dev \
+        libsnappy-dev \
+        openmpi-bin \
+        openmpi-doc \
+        libgoogle-glog-dev \
+        libprotobuf-dev \
+        protobuf-compiler && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-RUN curl -O https://bootstrap.pypa.io/get-pip.py && \
-    python3 get-pip.py && \
-    rm get-pip.py && \
-    pip3 --no-cache-dir install requests[security] && \
-    rm -rf /root/.cache
+RUN pip3 install --no-cache-dir --upgrade pip setuptools wheel
 
 RUN pip3 --no-cache-dir install \
-        Cython \
-        Jinja2 \
-        MarkupSafe \
-        Pillow \
-        Pygments \
-        appnope \
-        argparse \
-        backports-abc \
-        backports.ssl-match-hostname \
-        certifi \
-        cycler \
-        decorator \
-        future \
-        gnureadline \
-        h5py \
-        ipykernel \
-        ipython-genutils \
-        ipywidgets \
-        jsonschema \
-        jupyter \
-        jupyter-client \
-        jupyter-console \
-        jupyter-core \
-        matplotlib \
-        mistune \
-        nbconvert \
-        nbformat \
-        nltk \
-        notebook \
-        numpy \
-        path.py \
-        pexpect \
-        pickleshare \
-        ptyprocess \
-        pyparsing \
-        python-dateutil \
-        pytz \
-        pyzmq \
-        qtconsole \
-        scipy \
-        simplegeneric \
-        singledispatch \
-        six \
-        terminado \
-        tornado \
-        traitlets \
-        h5py \
-        scikit-learn \
-        && \
-        python3 -m ipykernel.kernelspec && \
+        hypothesis \
+        flask \
+        graphviz \
+        pydot \
+        python-nvd3 \
+        pyyaml \
+        requests \
+        scikit-image \
+        protobuf && \
         rm -rf /root/.cache
 
-COPY jupyter_notebook_config.py /root/.jupyter/
-COPY ipython_magic_function_inspector.py /root/.ipython/profile_default/startup/
+WORKDIR /opt/caffe2
 
-EXPOSE 8888
+RUN git clone --branch master --recursive https://github.com/caffe2/caffe2.git
+RUN cd caffe2 && mkdir build && cd build \
+    && cmake .. \
+    -DUSE_CUDA=OFF \
+    -DUSE_NNPACK=OFF \
+    -DUSE_ROCKSDB=OFF \
+    -DPYTHON_EXECUTABLE=$(which python3) \
+    -DPYTHON_INCLUDE_DIR=$(python3 -c 'from distutils import sysconfig; print(sysconfig.get_python_inc())') \
+    && make -j"$(nproc)" install \
+    && ldconfig \
+    && make clean \
+    && cd .. \
+    && rm -rf build
+    
+ENV PYTHONPATH /usr/local
+
+# install caffe
+RUN apt-get update -qq && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -yq --no-install-recommends \
+        libatlas-base-dev \
+        libboost-all-dev \
+        libhdf5-serial-dev && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+WORKDIR /opt/opencv
+RUN git clone https://github.com/opencv/opencv && \
+    cd opencv && \
+    mkdir build && \
+    cd build && \
+    cmake .. && \
+    make && \
+    make install
+
+ENV CAFFE_ROOT=/opt/caffe
+WORKDIR $CAFFE_ROOT
+
+RUN git clone -b 1.0 --depth 1 https://github.com/BVLC/caffe.git . && \
+    pip3 install --upgrade pip && \
+    cd python && for req in $(cat requirements.txt) pydot; do pip3 install $req; done && cd .. && \
+    mkdir build && cd build && \
+    cmake \
+        -DCPU_ONLY=1 \
+        -Dpython_version=3 .. && \
+    make -j"$(nproc)"
+
+ENV PYCAFFE_ROOT $CAFFE_ROOT/python
+ENV PYTHONPATH $PYCAFFE_ROOT:$PYTHONPATH
+ENV PATH $CAFFE_ROOT/build/tools:$PYCAFFE_ROOT:$PATH
+RUN echo "$CAFFE_ROOT/build/lib" >> /etc/ld.so.conf.d/caffe.conf && ldconfig
+RUN pip3 --no-cache-dir install python-dateutil --upgrade
+
+# install tensorflow
+RUN pip3 --no-cache-dir install tensorflow
+
+# install pytorch
+RUN pip3 --no-cache-dir install http://download.pytorch.org/whl/cpu/torch-0.3.0.post4-cp35-cp35m-linux_x86_64.whl \
+        torchvision
 
 WORKDIR /workspace
-
-CMD ["bash"]
