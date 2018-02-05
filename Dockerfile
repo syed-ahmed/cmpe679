@@ -27,7 +27,6 @@ RUN pip3 install --no-cache-dir --upgrade pip setuptools wheel
 RUN pip3 --no-cache-dir install \
         hypothesis \
         flask \
-        graphviz \
         pydot \
         python-nvd3 \
         pyyaml \
@@ -36,7 +35,7 @@ RUN pip3 --no-cache-dir install \
         protobuf && \
         rm -rf /root/.cache
 
-WORKDIR /opt/caffe2
+WORKDIR /workspace/caffe2
 
 RUN git clone --branch master --recursive https://github.com/caffe2/caffe2.git
 RUN cd caffe2 && mkdir build && cd build \
@@ -63,7 +62,7 @@ RUN apt-get update -qq && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-WORKDIR /opt/opencv
+WORKDIR /workspace/opencv
 RUN git clone https://github.com/opencv/opencv && \
     cd opencv && \
     mkdir build && \
@@ -72,7 +71,7 @@ RUN git clone https://github.com/opencv/opencv && \
     make && \
     make install
 
-ENV CAFFE_ROOT=/opt/caffe
+ENV CAFFE_ROOT=/workspace/caffe
 WORKDIR $CAFFE_ROOT
 
 RUN git clone -b 1.0 --depth 1 https://github.com/BVLC/caffe.git . && \
