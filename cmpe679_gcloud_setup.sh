@@ -189,14 +189,13 @@ git clone https://github.com/opencv/opencv && \
     mkdir build && \
     cd build && \
     cmake .. && \
-    make && \
-    make install && \
+    make -j"$(nproc)" install && \
     cd ../../
 
 CAFFE_ROOT=$HOME/caffe
 
 git clone -b 1.0 --depth 1 https://github.com/BVLC/caffe.git && cd caffe && \
-    git clone https://github.com/NVIDIA/nccl.git && cd nccl && make -j install && cd .. && rm -rf nccl && \
+    git clone https://github.com/NVIDIA/nccl.git && cd nccl && make -j"$(nproc)" install && cd .. && rm -rf nccl && \
     pip3 install --upgrade pip && \
     cd python && for req in $(cat requirements.txt) pydot; do pip3 install $req; done && cd .. && \
     mkdir build && cd build && \
