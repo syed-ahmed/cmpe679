@@ -35,7 +35,7 @@ RUN pip3 --no-cache-dir install \
         protobuf && \
         rm -rf /root/.cache
 
-WORKDIR /workspace/caffe2
+WORKDIR /opt/caffe2
 
 RUN git clone --branch master --recursive https://github.com/caffe2/caffe2.git
 RUN cd caffe2 && mkdir build && cd build \
@@ -62,7 +62,7 @@ RUN apt-get update -qq && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-WORKDIR /workspace/opencv
+WORKDIR /opt/opencv
 RUN git clone https://github.com/opencv/opencv && \
     cd opencv && \
     mkdir build && \
@@ -71,7 +71,7 @@ RUN git clone https://github.com/opencv/opencv && \
     make && \
     make install
 
-ENV CAFFE_ROOT=/workspace/caffe
+ENV CAFFE_ROOT=/opt/caffe
 WORKDIR $CAFFE_ROOT
 
 RUN git clone -b 1.0 --depth 1 https://github.com/BVLC/caffe.git . && \
@@ -95,5 +95,9 @@ RUN pip3 --no-cache-dir install tensorflow
 # install pytorch
 RUN pip3 --no-cache-dir install http://download.pytorch.org/whl/cpu/torch-0.3.0.post4-cp35-cp35m-linux_x86_64.whl \
         torchvision
+
+RUN apt-get update -qq && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -yq --no-install-recommends \
+        graphviz
 
 WORKDIR /workspace
