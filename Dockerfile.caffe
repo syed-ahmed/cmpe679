@@ -155,6 +155,7 @@ RUN git clone --branch master --recursive https://github.com/caffe2/caffe2.git &
     -DCUDA_ARCH_BIN="35 52 60 61" \
     -DCUDA_ARCH_PTX="61" \
     -DUSE_PROF=ON \
+    -DUSE_NVTX=ON \
     -DUSE_NNPACK=OFF \
     -DUSE_ROCKSDB=OFF \
     -DUSE_NNPACK=OFF \
