@@ -148,7 +148,7 @@ RUN pip3 --no-cache-dir install python-dateutil --upgrade
 
 WORKDIR /opt/caffe2
 
-RUN git clone --branch master --recursive https://github.com/caffe2/caffe2.git && \
+RUN git clone --branch feature-nvtx-cmake --recursive https://github.com/syed-ahmed/caffe2.git && \
     cd caffe2 && mkdir build && cd build \
     && cmake .. \
     -DCUDA_ARCH_NAME=Manual \
